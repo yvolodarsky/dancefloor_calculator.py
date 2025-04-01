@@ -2,30 +2,37 @@ import streamlit as st
 import numpy as np
 import math
 
-st.title("🪩 LED Dance Floor Designer")
+st.title("🪩 LED Dance Floor Designer – Panel Grid")
 
 # --------------------------
-# Custom CSS for an evenly spaced, compact grid
+# Custom CSS for a flush, compact grid with even spacing
 # --------------------------
 st.markdown("""
-    <style>
-    /* Scoped CSS for grid buttons within the "panel-grid" container */
-    .panel-grid div.stButton > button {
-        margin: 2px !important;         /* Even gap of 2px */
-        padding: 0 !important;
-        width: 46px !important;          /* Adjusted size to account for margins */
-        height: 46px !important;
-        border: 1px solid #ddd !important;
-        font-size: 24px !important;      /* Increase emoji size for fun look */
-        line-height: 1;
-    }
-    .panel-grid div.stColumns {
-        gap: 0 !important;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+<style>
+/* Grid container styling */
+.panel-grid {
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+/* Force columns within the grid to display inline with no wrapping */
+.panel-grid .stColumns {
+    display: inline-flex !important;
+    flex-wrap: nowrap !important;
+}
+
+/* Style the buttons within the grid */
+.panel-grid div.stButton > button {
+    margin: 2px !important;         /* Even 2px gap on all sides */
+    padding: 0 !important;
+    width: 46px !important;          /* 46px + 2px margins ≈ 50px total */
+    height: 46px !important;
+    border: 1px solid #ddd !important;
+    font-size: 32px !important;
+    line-height: 1;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # ===== Input Section =====
 st.markdown("## Floor & Cost Details")
@@ -50,10 +57,11 @@ st.write(f"**Panels Needed:** {cols} columns x {rows} rows = {total_panels} pane
 st.write(f"**Total Cost:** ${total_cost:.2f}")
 
 # ===== Grid Initialization =====
+# Reinitialize the grid if it doesn't exist or if dimensions changed.
 if "pattern_grid" not in st.session_state or st.session_state.pattern_grid.shape != (rows, cols):
     st.session_state.pattern_grid = np.zeros((rows, cols), dtype=int)
 
-# ===== Pattern Controls =====
+# ===== Pattern Controls (outside grid container) =====
 st.markdown("## Pattern Controls")
 control_cols = st.columns(2)
 if control_cols[0].button("Reset Pattern"):
@@ -63,10 +71,10 @@ if control_cols[1].button("Make Checkered Pattern"):
 
 # ===== Panel Key (above totals and grid) =====
 st.markdown("## Panel Key")
-st.markdown("- **🎨 Opaque Panel:** Represents an opaque (white) panel")
-st.markdown("- **🪞 Mirror Panel:** Represents a mirror (black) panel")
+st.markdown("- **⬜ White:** Opaque Panel")
+st.markdown("- **⬛ Black:** Mirror Panel")
 
-# ===== Panel Totals & Cases =====
+# ===== Panel Totals & Cases (above the grid) =====
 opaque_count = int(np.count_nonzero(st.session_state.pattern_grid == 0))
 mirror_count = int(np.count_nonzero(st.session_state.pattern_grid == 1))
 total_count = opaque_count + mirror_count
@@ -76,21 +84,21 @@ cases_mirror = math.ceil(mirror_count / 10)
 cases_total = math.ceil(total_count / 10)
 
 st.markdown("## Panel Totals")
-st.write(f"**Opaque Panels (🎨):** {opaque_count}  —  **Cases Needed:** {cases_opaque}")
-st.write(f"**Mirror Panels (🪞):** {mirror_count}  —  **Cases Needed:** {cases_mirror}")
-st.write(f"**Total Panels:** {total_count}  —  **Total Cases Needed:** {cases_total}")
+st.write(f"**White Panels (Opaque):** {opaque_count} — **Cases Needed:** {cases_opaque}")
+st.write(f"**Black Panels (Mirror):** {mirror_count} — **Cases Needed:** {cases_mirror}")
+st.write(f"**Total Panels:** {total_count} — **Total Cases Needed:** {cases_total}")
 
 # ===== Panel Grid Section =====
-st.markdown("## Panel Grid (Click a panel to toggle its icon)")
-# Wrap the grid in a container with class "panel-grid" for our CSS to apply.
-st.markdown(f'<div class="panel-grid" style="overflow-x:auto;">', unsafe_allow_html=True)
+st.markdown("## Panel Grid (Click a panel to toggle its color)")
+# Wrap the entire grid in a container with class "panel-grid"
+st.markdown(f'<div class="panel-grid">', unsafe_allow_html=True)
 for r in range(rows):
-    st.markdown('<div style="display: flex;">', unsafe_allow_html=True)
+    # Each row is forced to be inline-flex so that cells don't wrap:
+    st.markdown('<div style="display: inline-flex; white-space: nowrap;">', unsafe_allow_html=True)
     row_cols = st.columns(cols)
     for c in range(cols):
-        # Use fun icons: 0 → 🎨 (opaque), 1 → 🪞 (mirror)
-        label = "🎨" if st.session_state.pattern_grid[r, c] == 0 else "🪞"
+        label = "⬜" if st.session_state.pattern_grid[r, c] == 0 else "⬛"
         if row_cols[c].button(label, key=f"panel_{r}_{c}", help=f"Row {r+1}, Col {c+1}"):
             st.session_state.pattern_grid[r, c] = 1 - st.session_state.pattern_grid[r, c]
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
