@@ -2,20 +2,22 @@ import streamlit as st
 import numpy as np
 import math
 
-st.title("🪩 LED Dance Floor Designer – Panel Grid")
+st.title("🪩 LED Dance Floor Designer")
 
 # --------------------------
-# Custom CSS scoped to the grid container only
+# Custom CSS for an evenly spaced, compact grid
 # --------------------------
 st.markdown("""
     <style>
-    /* Scoped CSS for the grid buttons within the container "panel-grid" */
+    /* Scoped CSS for grid buttons within the "panel-grid" container */
     .panel-grid div.stButton > button {
-        margin: 2px !important;  /* Even gap of 2px around each button */
+        margin: 2px !important;         /* Even gap of 2px */
         padding: 0 !important;
-        width: 46px !important;   /* Adjusted width so that overall cell is ~50px with margins */
+        width: 46px !important;          /* Adjusted size to account for margins */
         height: 46px !important;
         border: 1px solid #ddd !important;
+        font-size: 24px !important;      /* Increase emoji size for fun look */
+        line-height: 1;
     }
     .panel-grid div.stColumns {
         gap: 0 !important;
@@ -51,7 +53,7 @@ st.write(f"**Total Cost:** ${total_cost:.2f}")
 if "pattern_grid" not in st.session_state or st.session_state.pattern_grid.shape != (rows, cols):
     st.session_state.pattern_grid = np.zeros((rows, cols), dtype=int)
 
-# ===== Pattern Controls (outside the grid container) =====
+# ===== Pattern Controls =====
 st.markdown("## Pattern Controls")
 control_cols = st.columns(2)
 if control_cols[0].button("Reset Pattern"):
@@ -61,10 +63,10 @@ if control_cols[1].button("Make Checkered Pattern"):
 
 # ===== Panel Key (above totals and grid) =====
 st.markdown("## Panel Key")
-st.markdown("- **⬜ White:** Opaque Panel")
-st.markdown("- **⬛ Black:** Mirror Panel")
+st.markdown("- **🎨 Opaque Panel:** Represents an opaque (white) panel")
+st.markdown("- **🪞 Mirror Panel:** Represents a mirror (black) panel")
 
-# ===== Totals & Cases Section (above the grid) =====
+# ===== Panel Totals & Cases =====
 opaque_count = int(np.count_nonzero(st.session_state.pattern_grid == 0))
 mirror_count = int(np.count_nonzero(st.session_state.pattern_grid == 1))
 total_count = opaque_count + mirror_count
@@ -74,23 +76,20 @@ cases_mirror = math.ceil(mirror_count / 10)
 cases_total = math.ceil(total_count / 10)
 
 st.markdown("## Panel Totals")
-st.write(f"**White Panels (Opaque):** {opaque_count}  —  **Cases Needed:** {cases_opaque}")
-st.write(f"**Black Panels (Mirror):** {mirror_count}  —  **Cases Needed:** {cases_mirror}")
+st.write(f"**Opaque Panels (🎨):** {opaque_count}  —  **Cases Needed:** {cases_opaque}")
+st.write(f"**Mirror Panels (🪞):** {mirror_count}  —  **Cases Needed:** {cases_mirror}")
 st.write(f"**Total Panels:** {total_count}  —  **Total Cases Needed:** {cases_total}")
 
 # ===== Panel Grid Section =====
-st.markdown("## Panel Grid (Click a panel to toggle its color)")
-
+st.markdown("## Panel Grid (Click a panel to toggle its icon)")
 # Wrap the grid in a container with class "panel-grid" for our CSS to apply.
 st.markdown(f'<div class="panel-grid" style="overflow-x:auto;">', unsafe_allow_html=True)
-
-# Use a loop to build the grid rows.
 for r in range(rows):
-    # Each row is a flex container so that buttons align side-by-side.
     st.markdown('<div style="display: flex;">', unsafe_allow_html=True)
     row_cols = st.columns(cols)
     for c in range(cols):
-        label = "⬜" if st.session_state.pattern_grid[r, c] == 0 else "⬛"
+        # Use fun icons: 0 → 🎨 (opaque), 1 → 🪞 (mirror)
+        label = "🎨" if st.session_state.pattern_grid[r, c] == 0 else "🪞"
         if row_cols[c].button(label, key=f"panel_{r}_{c}", help=f"Row {r+1}, Col {c+1}"):
             st.session_state.pattern_grid[r, c] = 1 - st.session_state.pattern_grid[r, c]
     st.markdown('</div>', unsafe_allow_html=True)
