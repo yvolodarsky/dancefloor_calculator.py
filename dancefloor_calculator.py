@@ -5,17 +5,28 @@ import math
 st.title("🪩 LED Dance Floor Designer – Panel Grid")
 
 # --------------------------
-# Custom CSS for a tighter grid
+# Custom CSS for a tighter, flush grid
 # --------------------------
 st.markdown("""
     <style>
-    /* Remove extra margins/padding from grid buttons */
+    /* Remove margins/padding from buttons */
     div.stButton > button {
         margin: 0 !important;
         padding: 0 !important;
-        min-width: 50px;
-        min-height: 50px;
+        width: 50px !important;
+        height: 50px !important;
         border: 1px solid #ddd;
+    }
+    /* Remove margins/padding from the button container */
+    div.stButton {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    /* Remove gap and padding between columns */
+    div.stColumns {
+        gap: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
     /* Ensure our grid row container has no gap */
     .grid-row {
@@ -67,38 +78,26 @@ st.markdown("## Panel Key")
 st.markdown("- **⬜ White:** Opaque Panel")
 st.markdown("- **⬛ Black:** Mirror Panel")
 
-# ===== Totals Placeholder =====
-# Create a placeholder for panel totals that will appear above the grid.
-totals_placeholder = st.empty()
-
-# ----- Compute totals based on the current grid -----
+# ===== Totals & Cases Section =====
 opaque_count = int(np.count_nonzero(st.session_state.pattern_grid == 0))
 mirror_count = int(np.count_nonzero(st.session_state.pattern_grid == 1))
 total_count = opaque_count + mirror_count  # should equal total_panels
 
-# Calculate cases needed (10 panels per case)
 cases_opaque = math.ceil(opaque_count / 10)
 cases_mirror = math.ceil(mirror_count / 10)
 cases_total = math.ceil(total_count / 10)
 
-# Update the totals placeholder so it appears above the grid.
-totals_placeholder.markdown(
-    f"## Panel Totals\n"
-    f"**White Panels (Opaque):** {opaque_count}  —  **Cases Needed:** {cases_opaque}\n\n"
-    f"**Black Panels (Mirror):** {mirror_count}  —  **Cases Needed:** {cases_mirror}\n\n"
-    f"**Total Panels:** {total_count}  —  **Total Cases Needed:** {cases_total}"
-)
+st.markdown("## Panel Totals")
+st.write(f"**White Panels (Opaque):** {opaque_count}  —  **Cases Needed:** {cases_opaque}")
+st.write(f"**Black Panels (Mirror):** {mirror_count}  —  **Cases Needed:** {cases_mirror}")
+st.write(f"**Total Panels:** {total_count}  —  **Total Cases Needed:** {cases_total}")
 
 # ===== Panel Grid Section =====
 st.markdown("## Panel Grid (Click a panel to toggle its color)")
-
-# Define Unicode squares for display
 WHITE_SQUARE = "⬜"
 BLACK_SQUARE = "⬛"
 
-st.write("### Click on a panel to toggle its color:")
-
-# For each row, wrap the row in a fixed-width div so the squares are together.
+# For each row, wrap it in a fixed-width div so that on mobile the row stays together.
 for r in range(rows):
     st.markdown(f'<div style="width:{cols*50}px; overflow-x:auto;" class="grid-row">', unsafe_allow_html=True)
     row_cols = st.columns(cols)
