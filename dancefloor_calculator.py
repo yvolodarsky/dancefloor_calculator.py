@@ -5,33 +5,22 @@ import math
 st.title("🪩 LED Dance Floor Designer – Panel Grid")
 
 # --------------------------
-# Custom CSS for a tighter, flush grid
+# Custom CSS scoped to the grid container only
 # --------------------------
 st.markdown("""
     <style>
-    /* Remove margins/padding from buttons */
-    div.stButton > button {
+    /* This CSS applies only to elements within the panel grid container */
+    .panel-grid div.stButton > button {
         margin: 0 !important;
         padding: 0 !important;
         width: 50px !important;
         height: 50px !important;
-        border: 1px solid #ddd;
+        border: 1px solid #ddd !important;
     }
-    /* Remove margins/padding from the button container */
-    div.stButton {
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-    /* Remove gap and padding between columns */
-    div.stColumns {
+    .panel-grid div.stColumns {
         gap: 0 !important;
         padding: 0 !important;
         margin: 0 !important;
-    }
-    /* Ensure our grid row container has no gap */
-    .grid-row {
-        display: flex;
-        gap: 0;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -41,16 +30,13 @@ st.markdown("## Floor & Cost Details")
 width_ft = st.number_input("Dance Floor Width (ft)", min_value=1, value=20, help="Enter the width in feet.")
 length_ft = st.number_input("Dance Floor Length (ft)", min_value=1, value=20, help="Enter the length in feet.")
 
-# Panel dimensions and cost settings
 panel_size_ft = 20 / 12  # 20 inches in feet (~1.667 ft)
 cost_per_sqft = 15
 
-# Calculate grid dimensions
 cols = math.ceil(width_ft / panel_size_ft)
 rows = math.ceil(length_ft / panel_size_ft)
 total_panels = cols * rows
 
-# Actual floor size (rounded up to panels)
 actual_width = cols * panel_size_ft
 actual_length = rows * panel_size_ft
 total_sqft = actual_width * actual_length
@@ -61,11 +47,10 @@ st.write(f"**Panels Needed:** {cols} columns x {rows} rows = {total_panels} pane
 st.write(f"**Total Cost:** ${total_cost:.2f}")
 
 # ===== Grid Initialization =====
-# Reinitialize the grid if it doesn't exist or if dimensions changed.
 if "pattern_grid" not in st.session_state or st.session_state.pattern_grid.shape != (rows, cols):
     st.session_state.pattern_grid = np.zeros((rows, cols), dtype=int)
 
-# ===== Pattern Controls =====
+# ===== Pattern Controls (these buttons are outside the grid container) =====
 st.markdown("## Pattern Controls")
 control_cols = st.columns(2)
 if control_cols[0].button("Reset Pattern"):
@@ -73,15 +58,15 @@ if control_cols[0].button("Reset Pattern"):
 if control_cols[1].button("Make Checkered Pattern"):
     st.session_state.pattern_grid = np.fromfunction(lambda r, c: (r + c) % 2, (rows, cols), dtype=int)
 
-# ===== Panel Key Section (above totals and grid) =====
+# ===== Panel Key (above grid & totals) =====
 st.markdown("## Panel Key")
 st.markdown("- **⬜ White:** Opaque Panel")
 st.markdown("- **⬛ Black:** Mirror Panel")
 
-# ===== Totals & Cases Section =====
+# ===== Panel Totals (above grid) =====
 opaque_count = int(np.count_nonzero(st.session_state.pattern_grid == 0))
 mirror_count = int(np.count_nonzero(st.session_state.pattern_grid == 1))
-total_count = opaque_count + mirror_count  # should equal total_panels
+total_count = opaque_count + mirror_count
 
 cases_opaque = math.ceil(opaque_count / 10)
 cases_mirror = math.ceil(mirror_count / 10)
@@ -94,15 +79,18 @@ st.write(f"**Total Panels:** {total_count}  —  **Total Cases Needed:** {cases_
 
 # ===== Panel Grid Section =====
 st.markdown("## Panel Grid (Click a panel to toggle its color)")
-WHITE_SQUARE = "⬜"
-BLACK_SQUARE = "⬛"
 
-# For each row, wrap it in a fixed-width div so that on mobile the row stays together.
+# Wrap the grid in a container with class "panel-grid" and horizontal scroll on mobile.
+st.markdown(f'<div class="panel-grid" style="overflow-x:auto;">', unsafe_allow_html=True)
+
+# Generate each row of the grid
 for r in range(rows):
-    st.markdown(f'<div style="width:{cols*50}px; overflow-x:auto;" class="grid-row">', unsafe_allow_html=True)
+    # Each row is a flex container so that the buttons appear in a row.
+    st.markdown('<div style="display: flex;">', unsafe_allow_html=True)
     row_cols = st.columns(cols)
     for c in range(cols):
-        label = WHITE_SQUARE if st.session_state.pattern_grid[r, c] == 0 else BLACK_SQUARE
+        label = "⬜" if st.session_state.pattern_grid[r, c] == 0 else "⬛"
         if row_cols[c].button(label, key=f"panel_{r}_{c}", help=f"Row {r+1}, Col {c+1}"):
             st.session_state.pattern_grid[r, c] = 1 - st.session_state.pattern_grid[r, c]
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
