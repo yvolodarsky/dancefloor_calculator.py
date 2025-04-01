@@ -28,12 +28,10 @@ st.write(f"**Total Cost:** ${total_cost:.2f}")
 
 # Initialize or reset the grid pattern in session state if not already done.
 if 'pattern_grid' not in st.session_state:
-    # 0 represents Opaque (White) and 1 represents Mirror (Black)
+    # 0 represents White (Opaque) and 1 represents Black (Mirror)
     st.session_state.pattern_grid = np.zeros((rows, cols), dtype=int)
 
 st.write("### Click on each panel to toggle its color (White ↔ Black).")
-
-rerun_needed = False  # flag to trigger a single rerun after a click
 
 # Create the grid of colored buttons using custom CSS
 for r in range(rows):
@@ -60,11 +58,6 @@ for r in range(rows):
         # Create an empty button; its appearance will be controlled by the injected CSS.
         if cols_container[c].button("", key=button_id, help=f"Row {r+1}, Col {c+1}"):
             st.session_state.pattern_grid[r, c] = 1 - st.session_state.pattern_grid[r, c]
-            rerun_needed = True
-
-# Rerun the app once after any button is clicked to update the display.
-if rerun_needed:
-    st.experimental_rerun()
 
 # After the grid, display the totals for each panel type
 opaque_count = int(np.count_nonzero(st.session_state.pattern_grid == 0))
