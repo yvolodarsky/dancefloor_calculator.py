@@ -11,8 +11,8 @@ length_ft = st.number_input("Dance Floor Length (ft)", min_value=1, value=20)
 
 # Constants
 panel_size_inch = 20
-panel_size_ft = panel_size_inch / 12  # Convert to feet
-cost_per_sqft = 10  # $10 per sqft
+panel_size_ft = panel_size_inch / 12  # Convert inches to feet
+cost_per_sqft = 15  # Updated to $15 per sqft
 
 # Calculate panels needed
 cols = math.ceil(width_ft / panel_size_ft)
