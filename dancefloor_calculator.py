@@ -33,27 +33,20 @@ if "pattern_grid" not in st.session_state:
 
 st.write("### Click on a panel to toggle its color:")
 
-# Define Unicode squares for display
+# Define Unicode squares for display: white and black
 WHITE_SQUARE = "⬜"
 BLACK_SQUARE = "⬛"
 
-changed = False  # flag to trigger a re-run when any panel is clicked
-
-# Create a grid of buttons using st.columns
+# Create the grid using st.columns()
 for r in range(rows):
     cols_container = st.columns(cols)
     for c in range(cols):
-        # Set label based on the panel's current state.
         label = WHITE_SQUARE if st.session_state.pattern_grid[r, c] == 0 else BLACK_SQUARE
+        # Each button click will automatically trigger a re-run.
         if cols_container[c].button(label, key=f"panel_{r}_{c}"):
             st.session_state.pattern_grid[r, c] = 1 - st.session_state.pattern_grid[r, c]
-            changed = True
 
-# If any panel was toggled, re-run the app to update the grid display.
-if changed:
-    st.experimental_rerun()
-
-# Count the panels
+# Display totals
 opaque_count = int(np.count_nonzero(st.session_state.pattern_grid == 0))
 mirror_count = int(np.count_nonzero(st.session_state.pattern_grid == 1))
 
