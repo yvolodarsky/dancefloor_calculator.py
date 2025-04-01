@@ -2,7 +2,7 @@ import streamlit as st
 import numpy as np
 import math
 
-st.title("🪩 LED Dance Floor Designer")
+st.title("🪩 LED Dance Floor Designer – Fallback Grid Approach")
 
 # Inputs for dance floor dimensions
 width_ft = st.number_input("Dance Floor Width (ft)", min_value=1, value=20)
@@ -28,43 +28,29 @@ st.write(f"**Total Cost:** ${total_cost:.2f}")
 
 # Initialize or reset the grid pattern in session state if not already done.
 if 'pattern_grid' not in st.session_state:
-    # 0 represents Opaque (gray) and 1 represents Mirror (black)
+    # 0 represents Opaque and 1 represents Mirror
     st.session_state.pattern_grid = np.zeros((rows, cols), dtype=int)
 
 st.write("### Click on each panel to toggle between Opaque and Mirror.")
 
-rerun_needed = False  # Flag to indicate if we need to rerun the script
+rerun_needed = False  # flag to trigger a single rerun after a click
 
 # Create the grid of buttons
 for r in range(rows):
-    # Create a row of columns (buttons)
     cols_container = st.columns(cols)
     for c in range(cols):
-        # Determine the button label and color based on current state
-        if st.session_state.pattern_grid[r, c] == 0:
-            label = "Opaque"
-            button_color = "#d3d3d3"  # light gray
-        else:
-            label = "Mirror"
-            button_color = "#000000"  # black
-
-        # Style the button using HTML within Markdown
-        button_html = f"""
-        <div style="background-color:{button_color}; padding:10px; text-align:center; border-radius:5px;">
-            <span style="color:{'white' if st.session_state.pattern_grid[r, c]==1 else 'black'}">{label}</span>
-        </div>
-        """
-        # Create the button with a unique key for each cell
-        if cols_container[c].button(button_html, key=f"cell_{r}_{c}", help=f"Row {r+1}, Col {c+1}"):
-            # Toggle the panel type when the button is clicked
+        # Label based on the current state: Opaque or Mirror
+        label = "Opaque" if st.session_state.pattern_grid[r, c] == 0 else "Mirror"
+        # Create a button for each panel with a unique key
+        if cols_container[c].button(label, key=f"cell_{r}_{c}", help=f"Row {r+1}, Col {c+1}"):
             st.session_state.pattern_grid[r, c] = 1 - st.session_state.pattern_grid[r, c]
             rerun_needed = True
 
-# If any cell was toggled, rerun the app once after the loop
+# If any button was clicked, rerun the app to refresh the grid display
 if rerun_needed:
     st.experimental_rerun()
 
-# After the grid, display the counts of each panel type
+# After the grid, display the totals for each panel type
 opaque_count = int(np.count_nonzero(st.session_state.pattern_grid == 0))
 mirror_count = int(np.count_nonzero(st.session_state.pattern_grid == 1))
 
