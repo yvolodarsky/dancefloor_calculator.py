@@ -2,7 +2,7 @@ import streamlit as st
 import numpy as np
 import math
 
-st.title("🪩 LED Dance Floor Designer – Fallback Grid Approach")
+st.title("🪩 LED Dance Floor Designer – Colored Panel Grid")
 
 # Inputs for dance floor dimensions
 width_ft = st.number_input("Dance Floor Width (ft)", min_value=1, value=20)
@@ -28,25 +28,41 @@ st.write(f"**Total Cost:** ${total_cost:.2f}")
 
 # Initialize or reset the grid pattern in session state if not already done.
 if 'pattern_grid' not in st.session_state:
-    # 0 represents Opaque and 1 represents Mirror
+    # 0 represents Opaque (White) and 1 represents Mirror (Black)
     st.session_state.pattern_grid = np.zeros((rows, cols), dtype=int)
 
-st.write("### Click on each panel to toggle between Opaque and Mirror.")
+st.write("### Click on each panel to toggle its color (White ↔ Black).")
 
 rerun_needed = False  # flag to trigger a single rerun after a click
 
-# Create the grid of buttons
+# Create the grid of colored buttons using custom CSS
 for r in range(rows):
     cols_container = st.columns(cols)
     for c in range(cols):
-        # Label based on the current state: Opaque or Mirror
-        label = "Opaque" if st.session_state.pattern_grid[r, c] == 0 else "Mirror"
-        # Create a button for each panel with a unique key
-        if cols_container[c].button(label, key=f"cell_{r}_{c}", help=f"Row {r+1}, Col {c+1}"):
+        # Determine the button color: white for 0, black for 1.
+        button_color = "#FFFFFF" if st.session_state.pattern_grid[r, c] == 0 else "#000000"
+        # Create a unique key/id for each button
+        button_id = f"button_cell_{r}_{c}"
+        # Inject custom CSS to style this button's background color and size
+        st.markdown(
+            f"""
+            <style>
+            #{button_id} button {{
+                background-color: {button_color} !important;
+                border: none;
+                height: 50px;
+                width: 50px;
+            }}
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+        # Create an empty button; its appearance will be controlled by the injected CSS.
+        if cols_container[c].button("", key=button_id, help=f"Row {r+1}, Col {c+1}"):
             st.session_state.pattern_grid[r, c] = 1 - st.session_state.pattern_grid[r, c]
             rerun_needed = True
 
-# If any button was clicked, rerun the app to refresh the grid display
+# Rerun the app once after any button is clicked to update the display.
 if rerun_needed:
     st.experimental_rerun()
 
@@ -55,5 +71,5 @@ opaque_count = int(np.count_nonzero(st.session_state.pattern_grid == 0))
 mirror_count = int(np.count_nonzero(st.session_state.pattern_grid == 1))
 
 st.write("### Panel Totals:")
-st.write(f"- **Opaque Panels:** {opaque_count}")
-st.write(f"- **Mirror Panels:** {mirror_count}")
+st.write(f"- **White Panels (Opaque):** {opaque_count}")
+st.write(f"- **Black Panels (Mirror):** {mirror_count}")
