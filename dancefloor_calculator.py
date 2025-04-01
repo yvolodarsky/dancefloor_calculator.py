@@ -28,16 +28,30 @@ st.write(f"**Actual Floor Size:** {actual_width:.1f} ft x {actual_length:.1f} ft
 st.write(f"**Panels Needed:** {cols} columns x {rows} rows = {total_panels} panels")
 st.write(f"**Total Cost:** ${total_cost:.2f}")
 
-# ===== Panel Grid Section =====
-st.markdown("## Panel Grid (Click a panel to toggle its color)")
-# Initialize or reset the grid pattern in session state if not already done, or if dimensions have changed.
+# ===== Grid Initialization =====
+# Reinitialize the grid if it doesn't exist or if dimensions have changed.
 if "pattern_grid" not in st.session_state or st.session_state.pattern_grid.shape != (rows, cols):
-    # 0 = White (Opaque), 1 = Black (Mirror)
     st.session_state.pattern_grid = np.zeros((rows, cols), dtype=int)
 
-# Unicode symbols for display
-WHITE_SQUARE = "⬜"
-BLACK_SQUARE = "⬛"
+# ===== Pattern Controls =====
+st.markdown("## Pattern Controls")
+control_cols = st.columns(2)
+if control_cols[0].button("Reset Pattern"):
+    st.session_state.pattern_grid = np.zeros((rows, cols), dtype=int)
+if control_cols[1].button("Make Checkered Pattern"):
+    # Create a checkered pattern: alternate 0 and 1.
+    st.session_state.pattern_grid = np.fromfunction(lambda r, c: (r + c) % 2, (rows, cols), dtype=int)
+
+# ===== Panel Key Section =====
+st.markdown("## Panel Key")
+st.markdown("- **⬜ White:** Opaque Panel")
+st.markdown("- **⬛ Black:** Mirror Panel")
+
+# ===== Panel Grid Section =====
+st.markdown("## Panel Grid (Click a panel to toggle its color)")
+# Define Unicode squares for display
+WHITE_SQUARE = "⬜"  # White represents Opaque
+BLACK_SQUARE = "⬛"  # Black represents Mirror
 
 st.write("### Click on a panel to toggle its color:")
 
@@ -45,7 +59,6 @@ st.write("### Click on a panel to toggle its color:")
 for r in range(rows):
     cols_container = st.columns(cols)
     for c in range(cols):
-        # Access the cell safely now that the grid shape matches the current rows, cols.
         label = WHITE_SQUARE if st.session_state.pattern_grid[r, c] == 0 else BLACK_SQUARE
         if cols_container[c].button(label, key=f"panel_{r}_{c}", help=f"Row {r+1}, Col {c+1}"):
             st.session_state.pattern_grid[r, c] = 1 - st.session_state.pattern_grid[r, c]
@@ -64,8 +77,3 @@ st.markdown("## Panel Totals")
 st.write(f"**White Panels (Opaque):** {opaque_count}  —  **Cases Needed:** {cases_opaque}")
 st.write(f"**Black Panels (Mirror):** {mirror_count}  —  **Cases Needed:** {cases_mirror}")
 st.write(f"**Total Panels:** {total_count}  —  **Total Cases Needed:** {cases_total}")
-
-# ===== Key Section =====
-st.markdown("## Panel Key")
-st.markdown("- **⬜ White:** Opaque Panel")
-st.markdown("- **⬛ Black:** Mirror Panel")
