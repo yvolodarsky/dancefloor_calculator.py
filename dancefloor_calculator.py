@@ -30,8 +30,8 @@ st.write(f"**Total Cost:** ${total_cost:.2f}")
 
 # ===== Panel Grid Section =====
 st.markdown("## Panel Grid (Click a panel to toggle its color)")
-# Initialize grid in session state if needed
-if "pattern_grid" not in st.session_state:
+# Initialize or reset the grid pattern in session state if not already done, or if dimensions have changed.
+if "pattern_grid" not in st.session_state or st.session_state.pattern_grid.shape != (rows, cols):
     # 0 = White (Opaque), 1 = Black (Mirror)
     st.session_state.pattern_grid = np.zeros((rows, cols), dtype=int)
 
@@ -39,10 +39,13 @@ if "pattern_grid" not in st.session_state:
 WHITE_SQUARE = "⬜"
 BLACK_SQUARE = "⬛"
 
-# Display the grid using a button for each panel.
+st.write("### Click on a panel to toggle its color:")
+
+# Create the grid using st.columns()
 for r in range(rows):
     cols_container = st.columns(cols)
     for c in range(cols):
+        # Access the cell safely now that the grid shape matches the current rows, cols.
         label = WHITE_SQUARE if st.session_state.pattern_grid[r, c] == 0 else BLACK_SQUARE
         if cols_container[c].button(label, key=f"panel_{r}_{c}", help=f"Row {r+1}, Col {c+1}"):
             st.session_state.pattern_grid[r, c] = 1 - st.session_state.pattern_grid[r, c]
