@@ -2,17 +2,17 @@ import streamlit as st
 import numpy as np
 import math
 
-st.title("🪩 LED Dance Floor Designer – Fallback Grid Approach")
+st.title("🪩 LED Dance Floor Designer")
 
-# Inputs
+# Inputs for dance floor dimensions
 width_ft = st.number_input("Dance Floor Width (ft)", min_value=1, value=20)
 length_ft = st.number_input("Dance Floor Length (ft)", min_value=1, value=20)
 
-# Constants: Panel size (20 inches in feet) and cost
+# Constants: Panel size (20 inches converted to feet) and cost per square foot
 panel_size_ft = 20 / 12
 cost_per_sqft = 15
 
-# Calculate grid dimensions
+# Calculate grid dimensions based on the panel size
 cols = math.ceil(width_ft / panel_size_ft)
 rows = math.ceil(length_ft / panel_size_ft)
 total_panels = cols * rows
@@ -33,12 +33,14 @@ if 'pattern_grid' not in st.session_state:
 
 st.write("### Click on each panel to toggle between Opaque and Mirror.")
 
-# Create a grid of buttons
+rerun_needed = False  # Flag to indicate if we need to rerun the script
+
+# Create the grid of buttons
 for r in range(rows):
-    # Create a row of columns
+    # Create a row of columns (buttons)
     cols_container = st.columns(cols)
     for c in range(cols):
-        # Determine the label and style for the button based on the current state
+        # Determine the button label and color based on current state
         if st.session_state.pattern_grid[r, c] == 0:
             label = "Opaque"
             button_color = "#d3d3d3"  # light gray
@@ -46,22 +48,26 @@ for r in range(rows):
             label = "Mirror"
             button_color = "#000000"  # black
 
-        # Use Markdown to style the button label with background color (since st.button does not support styling directly)
-        # Note: This trick uses HTML inside st.markdown and works best in a simplified layout.
+        # Style the button using HTML within Markdown
         button_html = f"""
         <div style="background-color:{button_color}; padding:10px; text-align:center; border-radius:5px;">
             <span style="color:{'white' if st.session_state.pattern_grid[r, c]==1 else 'black'}">{label}</span>
         </div>
         """
+        # Create the button with a unique key for each cell
         if cols_container[c].button(button_html, key=f"cell_{r}_{c}", help=f"Row {r+1}, Col {c+1}"):
-            # Toggle the state of the cell when clicked
+            # Toggle the panel type when the button is clicked
             st.session_state.pattern_grid[r, c] = 1 - st.session_state.pattern_grid[r, c]
-            st.experimental_rerun()  # Rerun to refresh the grid immediately
+            rerun_needed = True
 
-# After the grid, display the counts of each type
+# If any cell was toggled, rerun the app once after the loop
+if rerun_needed:
+    st.experimental_rerun()
+
+# After the grid, display the counts of each panel type
 opaque_count = int(np.count_nonzero(st.session_state.pattern_grid == 0))
 mirror_count = int(np.count_nonzero(st.session_state.pattern_grid == 1))
 
-st.write(f"### Panel Totals:")
+st.write("### Panel Totals:")
 st.write(f"- **Opaque Panels:** {opaque_count}")
 st.write(f"- **Mirror Panels:** {mirror_count}")
