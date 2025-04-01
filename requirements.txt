@@ -1,2 +1,5 @@
 streamlit
 matplotlib
+streamlit-drawable-canvas
+numpy
+Pillow
