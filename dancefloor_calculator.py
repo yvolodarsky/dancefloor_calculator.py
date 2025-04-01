@@ -26,22 +26,26 @@ st.write(f"**Actual Floor Size:** {actual_width:.1f} ft x {actual_length:.1f} ft
 st.write(f"**Panels Needed:** {cols} columns x {rows} rows = {total_panels} panels")
 st.write(f"**Total Cost:** ${total_cost:.2f}")
 
-# Initialize or reset the grid pattern in session state if not already done.
-if 'pattern_grid' not in st.session_state:
-    # 0 represents White (Opaque) and 1 represents Black (Mirror)
+# Initialize or reset the grid pattern in session state if not already set.
+if 'pattern_grid' not in st.session_state or st.button("Reset Pattern"):
     st.session_state.pattern_grid = np.zeros((rows, cols), dtype=int)
+
+# Define a callback to toggle a cell at (r, c)
+def toggle_cell(r, c):
+    st.session_state.pattern_grid[r, c] = 1 - st.session_state.pattern_grid[r, c]
 
 st.write("### Click on each panel to toggle its color (White ↔ Black).")
 
-# Create the grid of colored buttons using custom CSS
+# Create the grid of colored buttons using custom CSS styling
 for r in range(rows):
     cols_container = st.columns(cols)
     for c in range(cols):
-        # Determine the button color: white for 0, black for 1.
+        # Determine the button's background color based on current state:
+        # 0 = white (opaque), 1 = black (mirror)
         button_color = "#FFFFFF" if st.session_state.pattern_grid[r, c] == 0 else "#000000"
-        # Create a unique key/id for each button
+        # Create a unique key for the button
         button_id = f"button_cell_{r}_{c}"
-        # Inject custom CSS to style this button's background color and size
+        # Inject custom CSS to style the button
         st.markdown(
             f"""
             <style>
@@ -55,11 +59,10 @@ for r in range(rows):
             """,
             unsafe_allow_html=True,
         )
-        # Create an empty button; its appearance will be controlled by the injected CSS.
-        if cols_container[c].button("", key=button_id, help=f"Row {r+1}, Col {c+1}"):
-            st.session_state.pattern_grid[r, c] = 1 - st.session_state.pattern_grid[r, c]
+        # Create the button with an on_click callback that toggles the cell.
+        cols_container[c].button("", key=button_id, help=f"Row {r+1}, Col {c+1}", on_click=toggle_cell, args=(r, c))
 
-# After the grid, display the totals for each panel type
+# After the grid, display totals for each panel type.
 opaque_count = int(np.count_nonzero(st.session_state.pattern_grid == 0))
 mirror_count = int(np.count_nonzero(st.session_state.pattern_grid == 1))
 
